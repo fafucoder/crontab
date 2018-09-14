@@ -1,0 +1,22 @@
+{
+    "name": "root/crontab",
+    "description": "linux 定时器",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "dawn",
+            "email": "1960754013@qq.com"
+        }
+    ],
+    "require": {
+        "symfony/process": "^4.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Crontab\\": "src/"
+        }
+    }
+}

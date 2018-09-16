@@ -1,3 +1,5 @@
+#All in the constructing#
+
 ###配置crontab###
 ~~~php
 <?php
@@ -92,6 +94,6 @@ $crontab
 	->setHour('秒杀', '*')
 	->setDay('秒杀', '23')
 	->setMonth('秒杀', '1,2,3')
-	->Week('秒杀', '1')
+	->setWeek('秒杀', '1')
 	->setCommand('秒杀', 'ls -al');
 ~~~

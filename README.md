@@ -1,8 +1,8 @@
-#All in the constructing#
+All in the constructing
+-----------------------
 
-###配置crontab###
+### 配置crontab
 ~~~php
-<?php
 use Crontab\Crontab;
 
 $crontab = new Crontab('秒杀', array(
@@ -17,9 +17,8 @@ $crontab = new Crontab('秒杀', array(
 ))->run();
 ~~~
 
-###Crontab方法###
+### Crontab方法
 ~~~php
-<?php
 $crontab
 	->setCommand('ls -al')
 	->setOutput(__DIR__ . '/output.php')
@@ -32,15 +31,13 @@ $crontab
 
 ~~~
 
-###移除 Crontab###
+### 移除 Crontab
 ~~~php
-<?php
 $crontab->removeJob('秒杀');
 ~~~
 
-###添加Crontab###
+### 添加Crontab
 ~~~php
-<?php
 $crontab->addJob('秒杀', array(
 	'command' => 'ls -al',
 	'output' => dirname(__FIlE__) . '/output.php',
@@ -53,42 +50,36 @@ $crontab->addJob('秒杀', array(
 ));
 ~~~
 
-###Disable Crontab###
+### Disable Crontab
 ~~~php
-<?php
 $crontab->disable('秒杀');
 ~~~
 
-###Enable Crontab###
+### Enable Crontab
 ~~~php
-<?php
 $crontab->enable('秒杀');
 ~~~
 
-###Run crontab###
+### Run crontab
 必须是enable才可以执行crontab,如果是disable则不执行crontab
 ~~~php
-<?php
 $crontab->enable('秒杀')->run('秒杀');
 ~~~
 
-###Get the output for crontab###
+### Get the output for crontab
 ~~~php
-<?php
 $output = $crontab->getOutput('秒杀');
 ~~~
 
 
-###Clear crontab###
+### Clear crontab 
 ~~~php
-<?php
 $crontab->clear();
 ~~~
 
 
-###关于设置schedule可以有其他的方法###
+### 关于设置schedule可以有其他的方法
 ~~~php
-<?php
 $crontab
 	->setMinute('秒杀', '*')
 	->setHour('秒杀', '*')

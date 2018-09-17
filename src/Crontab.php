@@ -176,8 +176,8 @@ class Crontab extends Configurable {
 	 * 
 	 * @return string 
 	 */
-	public function getOutput() {
-		return $this->excuteHandle->getOutput();
+	public function getData() {
+		return $this->excuteHandle->getData();
 	}
 
 	/**
@@ -185,7 +185,7 @@ class Crontab extends Configurable {
 	 * 
 	 * @return string 
 	 */
-	public function getErrorOutput() {
-		return $this->excuteHandle->getErrorOutput();
+	public function getErrorData() {
+		return $this->excuteHandle->getErrorData();
 	}
 }

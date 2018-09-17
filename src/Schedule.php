@@ -9,7 +9,7 @@ class Schedule {
      * 
      * @var array
      */
-    protected $maps = array(
+    protected $schedules = array(
         '@yearly' => '0 0 1 1 *',
         '@annually' => '0 0 1 1 *',
         '@monthly' => '0 0 1 * *',
@@ -85,7 +85,9 @@ class Schedule {
      * @return void           
      */
     public function parseSchedule($schedule = '') {
-
+        if (array_key_exists($schedule, $this->schedules)) {
+            $schedule = $this->schedules[$schedule];
+        }
     }
 
     /**

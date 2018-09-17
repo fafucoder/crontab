@@ -4,6 +4,9 @@ namespace Crontab;
 use Closure;
 use Crontab\Exception\FileNotFoundException;
 use Crontab\Exception\FileWriteableException;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\PhpProcess;
+use Symfony\Component\Process\PhpExecutableFinder;
 
 class ExcuteHandle extends Configurable {
 	/**
@@ -39,14 +42,14 @@ class ExcuteHandle extends Configurable {
 	 * 
 	 * @var string
 	 */
-	protected $data;
+	protected $data = array();
 
 	/**
 	 * The extuted error schedule data.
 	 * 
 	 * @var string
 	 */
-	protected $error_data;
+	protected $error_data = array();
 
 	/**
 	 * Construct.
@@ -135,8 +138,8 @@ class ExcuteHandle extends Configurable {
 	 * @param mixed $function 
 	 */
 	public function setFunction($function) {
-		if (!$function instanceof Closure || !class_exists($function)) {
-			throw new \Exception("Function have problem!");
+		if (!$function instanceof Closure || !class_exists($function) || file_exists($function)) {
+			throw new \Exception("Function must is function or class or file and file exist!");
 		}
 		$this->function = $function;
 
@@ -150,5 +153,86 @@ class ExcuteHandle extends Configurable {
 	 */
 	public function getFunction() {
 		return $this->function;
+	}
+
+	/**
+	 * Excute command.
+	 * 
+	 * @param  mixed $command 
+	 * @return void
+	 */
+	public function excuteCommand($command) {
+		$process = new Process($command);
+		$process->run();
+
+		$this->data = $process->getOutput();
+		$this->error_data = $process->getErrorOutput();
+	}
+
+	/**
+	 * Excute function.
+	 * 
+	 * @return mixed 
+	 */
+	public function excuteFunction() {
+		if ($this->function instanceof Closure) {
+			//@TODO			
+		}
+
+		if (file_exists($this->function)) {
+			$path = $this->phpFinder();
+			$command = array($path, $this->function);
+			$this->excuteCommand($command);
+		}
+
+		//@TODO may be need further fixed
+		if (class_exists($this->function)) {
+			$class = $this->function;
+			return new $class();
+		}
+	}
+
+	/**
+	 * Excute function or command.
+	 * 
+	 * @return void
+	 */
+	public function excute() {
+		if ($this->function) {
+			$this->excuteFunction();
+		}
+
+		if ($this->command) {
+			$this->excuteCommand($this->command);
+		}
+	}
+
+	/**
+	 * Get data.
+	 * 
+	 * @return string 
+	 */
+	public function getData() {
+		return $this->data;
+	}
+	/**
+	 * Get error data.
+	 * 
+	 * @return string 
+	 */
+	public function getErrorData() {
+		return $this->error_data;
+	}
+
+	/**
+	 * Finding the Executable PHP Binary, '/usr/local/bin/php'.
+	 * 
+	 * @return string php path
+	 */
+	protected function phpFinder() {
+		$phpBinaryFinder = new PhpExecutableFinder();
+		$phpBinaryPath = $phpBinaryFinder->find();
+
+		return $phpBinaryPath;
 	}
 }

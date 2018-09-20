@@ -2,6 +2,7 @@
 namespace Crontab\Schedule;
 
 use Crontab\Exception\ScheduleException;
+use Crontab\Validate;
 
 class Schedule {
     /**
@@ -67,6 +68,20 @@ class Schedule {
 	 */
 	protected $week = "*";
 
+    /**
+     * Validate instance.
+     * 
+     * @var object
+     */
+    protected $validate;
+
+    /**
+     * The schedule order.
+     * 
+     * @var array
+     */
+    protected $order = array('minute', 'hour', 'day', 'month', 'week');
+
 	/**
 	 * Construct.
 	 * 
@@ -76,19 +91,9 @@ class Schedule {
         if ($schedule) {
             $this->parseSchedule($schedule);
         }
+
+        $this->validate = new Validate();
 	}
-	
-    /**
-     * Parse schedule.
-     * 
-     * @param  string $schedule 
-     * @return void           
-     */
-    public function parseSchedule($schedule = '') {
-        if (array_key_exists($schedule, $this->schedules)) {
-            $schedule = $this->schedules[$schedule];
-        }
-    }
 
     /**
      * Get Schedule minute.
@@ -223,6 +228,28 @@ class Schedule {
      * @return void           
      */
     public function parseSchedule($schedule) {
-        //@TODO
+        if (array_key_exists($schedule, $this->schedules)) {
+            $schedule = $this->schedules[$schedule];
+        }
+
+        $schedule = preg_split('/\s/', $schedule, -1, PREG_SPLIT_NO_EMPTY);
+
+        if (count($schedule) < 5) {
+            throw new ScheduleException('crontab schedule expression is not valid');
+        }
+
+        foreach ($schedule as $position => $value) {
+            $key = $this->order[$position];
+            $this->$key = $value;
+        }
+    }
+
+    /**
+     * Check schedule.
+     * 
+     * @return [type] [description]
+     */
+    public function is() {
+        //TODO
     }
 }

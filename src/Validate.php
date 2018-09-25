@@ -1,6 +1,8 @@
 <?php
 namespace Crontab;
 
+use DateTime;
+
 /**
  * Validate class is validate schedule fields is valid.
  *
@@ -80,13 +82,45 @@ class Validate {
 	);
 
 	/**
+	 * The week alias.
+	 * 
+	 * @var array
+	 */
+	public $weekAlias = array(
+		1 => 'MON', 
+		2 => 'TUE', 
+		3 => 'WED', 
+		4 => 'THU', 
+		5 => 'FRI', 
+		6 => 'SAT', 
+		7 => 'SUN',
+	);
+
+    /**
+     * The schedule order.
+     * 
+     * @var array
+     */
+    protected $order = array('minute', 'hour', 'day', 'month', 'week');
+
+	/**
 	 * Validate minute field.
 	 * 
 	 * @param  string $value minute value
 	 * @return boolean        
 	 */
-	public function minute($value) {
-		return $this->validate($value, 'minute');
+	public function minute(DateTime $date, $value) {
+		$minute = $date->format('i');
+
+		if (strpos($value, '/') !== false) {
+			return $this->isStep($minute, $value, 'minute');
+		}
+
+		if (strpos($value, '-') !== false) {
+			return $this->isRange($minute, $value);
+		}
+
+		return $value === "*" || $minute == $value;
 	}
 
 	/**
@@ -95,51 +129,17 @@ class Validate {
 	 * @param  string $value hour value.
 	 * @return boolean        
 	 */
-	public function hour($value) {
-		return $this->validate($value, 'hour');
-	}
-
-	/**
-	 * Validate week field.
-	 * 
-	 * @param  string $value week value
-	 * @return boolean        
-	 */
-	public function week($value) {
-		if (!$this->validate($value, 'week')) {
-			if (strpos($value, "#") !== false) {
-				$chunks = explode("#", $value);
-
-				if ($this->validate($chunks[0], 'week') && $this->validate($chunks[1])) {
-					return true;
-				}
-			}
-
-			if (preg_match('/^(.*)L$/', $value, $matches)) {
-				return $this->validate($matches[1]);
-			}
-
-			return false;
+	public function hour(DateTime $date, $value) {
+		$hour = $date->format('H');
+		if (strpos($value, '/') !== false) {
+			return $this->isStep($hour, $value, 'hour');
 		}
 
-		return true;
-	}
-
-	/**
-	 * Validate month field.
-	 * 
-	 * @param  string $value month value
-	 * @return boolean        
-	 */
-	public function month($value) {
-		if (!$this->validate($value, 'month')) {
-			if (in_array($value, $this->monthAlias)) {
-				return true;
-			}
-			return false;
+		if (strpos($value, '-') !== false) {
+			return $this->isRange($hour, $value);
 		}
 
-		return true;
+		return $value === "*" || $hour == $value;
 	}
 
 	/**
@@ -148,67 +148,254 @@ class Validate {
 	 * @param string $value day value
 	 * @return  boolean
 	 */
-	public function Day($value) {
-		if (!$this->validate($value, 'day')) {
-			if ($value === 'L') {
-				return true;
-			}
-
-			if (strpos($value, ',') !== false && (strpos($value, "W") !== false || strpos($value, 'L') !== false)) {
-				return false;
-			}
-			
-			if (preg_match('/^(.*)W$/', $value, $matches)) {
-				return $this->validate($matches[1], 'month');
-			}
-			return false;
-		}
-
-		return true;
-	}
-	
-	/**
-	 * Validate schedule is valid.
-	 * 
-	 * @param  string $value  schedule field value.
-	 * @param  string $fields curren fileds
-	 * @return boolean         
-	 */
-	protected function validate($value, $fields) {
-		if ("*" === $value) {
+	public function day(DateTime $date, $value) {
+		if ($value == '?') {
 			return true;
 		}
 
-		if (strpos($value, ',') !== false && strpos($value, '-') !== false) {
-			return false;
+		$day = $date->format('d');
+		if ($value == 'L') {
+			return $day == $date->format('t');
+		}
+
+		if (strpos($value, 'W')) {
+			$targetDay = substr($value, 0, strpos($value, 'W'));
+            return $date->format('j') == $this->getNearWorkDay($date->format('Y'), $date->format('m'), $targetDay)->format('j');
 		}
 
 		if (strpos($value, '/') !== false) {
-			list($range, $step) = explode('/', $value, 2);
-			return $this->validate($range, $fields) && filter_var($step, FILTER_VALIDATE_INT);
+			return $this->isStep($day, $value, 'day');
 		}
 
 		if (strpos($value, '-') !== false) {
-			if (substr_count($value, '-') > 1) {
-				return false;
-			}
-			$chunks = explode('-', $value);
-			return $this->validate($chunks[0], $fields) && $this->validate($chunks[1], $fields);
+			return $this->isRange($day, $value);
 		}
 
-		if (strpos($value, ',') !== false) {
-			foreach (explode(",", $value) as $item) {
-				if (!$this->validate($item, $fields)) {
-					return false;
-				}
-			}
+		return $value === "*" || $day == $value;
+	}
+
+	/**
+	 * Validate month field.
+	 *
+	 * @param  string $value month value
+	 * @return boolean        
+	 */
+	public function month(DateTime $date, $value) {
+		if (in_array($value, $this->monthAlias)) {
+			$value = array_search($value, $this->monthAlias);
+		}
+
+		$month = $date->format('m');
+
+		if (strpos($value, '/') !== false) {
+			return $this->isStep($month, $value, 'month');
+		}
+
+		if (strpos($value, '-') !== false) {
+			return $this->isRange($month, $value);
+		}
+
+		return $value === "*" || $month == $value;
+	}
+	
+	/**
+	 * Validate week field.
+	 * 
+	 * @param  string $value week value
+	 * @return boolean        
+	 */
+	public function week(DateTime $date, $value) {
+		if ($value == '?') {
 			return true;
 		}
 
-		if (filter_var($value, FILTER_VALIDATE_INT)) {
-			$value = (int) $value;
+		if (in_array($value, $this->weekAlias)) {
+			$value = array_search($value, $this->weekAlias);
 		}
 
-		return in_array($value, range($this->$fields['min'], $this->fields['max']), true);
+        $currentYear = $date->format('Y');
+        $currentMonth = $date->format('m');
+        $lastDayOfMonth = $date->format('t');
+
+		if (strpos($value, 'L')) {
+			$weekday = str_replace('7', '0', substr($value, 0, strpos($value, 'L')));
+			$tdate = clone $date;
+            $tdate->setDate($currentYear, $currentMonth, $lastDayOfMonth);
+
+            while ($tdate->format('w') != $weekday) {
+                $tdateClone = new DateTime();
+                $tdate = $tdateClone
+                    ->setTimezone($tdate->getTimezone())
+                    ->setDate($currentYear, $currentMonth, --$lastDayOfMonth);
+            }
+
+            return $date->format('j') == $lastDayOfMonth;
+		}
+
+        if (strpos($value, '#')) {
+            list($weekday, $nth) = explode('#', $value);
+
+            if (!is_numeric($nth)) {
+                return false;
+            } else {
+                $nth = (int) $nth;
+            }
+
+            // 0 and 7 are both Sunday, however 7 matches date('N') format ISO-8601
+            if ($weekday == '0') {
+                $weekday = 7;
+            }
+
+            $weekday = $this->convertLiterals($weekday);
+
+            if (in_array($weekday, $this->weekAlias)) {
+				$weekday = array_search($weekday, $this->weekAlias);
+			}
+
+            // Validate the hash fields
+            if ($weekday < 0 || $weekday > 7) {
+                return false;
+            }
+
+            if (!in_array($nth, $this->nthRange)) {
+                return false;
+            }
+
+            // The current weekday must match the targeted weekday to proceed
+            if ($date->format('N') != $weekday) {
+                return false;
+            }
+
+            $tdate = clone $date;
+            $tdate->setDate($currentYear, $currentMonth, 1);
+            $dayCount = 0;
+            $currentDay = 1;
+            while ($currentDay < $lastDayOfMonth + 1) {
+                if ($tdate->format('N') == $weekday) {
+                    if (++$dayCount >= $nth) {
+                        break;
+                    }
+                }
+                $tdate->setDate($currentYear, $currentMonth, ++$currentDay);
+            }
+
+            return $date->format('j') == $currentDay;
+        }
+
+        $format = in_array(7, str_split($value)) ? 'N' : 'w';
+        $week = $date->format($format);
+
+		if (strpos($value, '/') !== false) {
+			return $this->isStep($week, $value, 'week');
+		}
+
+		if (strpos($value, '-') !== false) {
+			// Handle day of the week values
+            $parts = explode('-', $value);
+            if ($parts[0] == '7') {
+                $parts[0] = '0';
+            } elseif ($parts[1] == '0') {
+                $parts[1] = '7';
+            }
+            $value = implode('-', $parts);
+
+			return $this->isRange($week, $value);
+		}
+
+		return $value === "*" || $week == $value;
+	}
+
+	/**
+	 * Is due.
+	 * 
+	 * @param  object  $date  DateTime
+	 * @param  string  $value 
+	 * @return boolean 
+	 */
+	public function isDue(DateTime $date, $position, $value) {
+		if ($value === '*' || $value === null) {
+			return true;
+		}
+
+		return $this->order[$position]($date, $value);
+	}
+
+	/**
+	 * Is range.
+	 * 
+	 * @param  string  $dateValue current date value
+	 * @param  string  $value     schedule value
+	 * @return boolean            
+	 */
+	public function isRange($dateValue, $value) {
+		$range = array_map('trim', explode('-', $value, 2));
+
+		return $dateValue >= $range[0] && $dateValue <= $range[1];
+	}
+
+	/**
+	 * Is step.
+	 * 
+	 * @param  string  $dateValue current date value
+	 * @param  string  $value     schedule value
+	 * @param  string  $type      field type
+	 * @return boolean            
+	 */
+	public function isStep($dateValue, $value, $type) {
+		$chunks = array_map('trim', explode('/', $value, 2));
+		$range = $chunks[0];
+        $step = isset($chunks[1]) ? $chunks[1] : 0;
+
+        if (is_null($step) || 0 == $step) {
+        	return false;
+        }
+
+        if ("*" == $range) {
+        	$range = $this->$type['min'] . '-' . $this->$type['max'];
+        }
+        list($start, $end) = explode("-", $range, 2);
+
+        if ($start > $end) {
+        	return false;
+        }
+
+        $interval = (int)$end - (int)$start +1;
+        if ($step > $interval) {
+        	return false;
+        }
+
+        $range = range($start, $end, $step);
+
+        return in_array($dateValue, $range);
+	}
+
+	/**
+	 * Get near work day.
+	 * 
+	 * @param  int $year  
+	 * @param  int $month 
+	 * @param  int $day   
+	 * @return DateTime
+	 */
+	public function getNearWorkDay($year, $month, $day) {
+        $tday = str_pad($day, 2, '0', STR_PAD_LEFT);
+        $target = DateTime::createFromFormat('Y-m-d', "$year-$month-$tday");
+        $currentWeekday = (int) $target->format('N');
+
+        if ($currentWeekday < 6) {
+            return $target;
+        }
+
+        $lastDayOfMonth = $target->format('t');
+
+        foreach (array(-1, 1, -2, 2) as $i) {
+            $adjusted = $targetDay + $i;
+            if ($adjusted > 0 && $adjusted <= $lastDayOfMonth) {
+                $target->setDate($currentYear, $currentMonth, $adjusted);
+                if ($target->format('N') < 6 && $target->format('m') == $currentMonth) {
+                    return $target;
+                }
+            }
+        }
 	}
 }

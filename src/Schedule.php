@@ -3,6 +3,7 @@ namespace Crontab\Schedule;
 
 use Crontab\Exception\ScheduleException;
 use Crontab\Validate;
+use DateTime;
 
 class Schedule {
     /**
@@ -247,9 +248,37 @@ class Schedule {
     /**
      * Check schedule.
      * 
-     * @return [type] [description]
+     * @return boolean
      */
-    public function is() {
-        //TODO
+    public function isRun() {
+        $date = DateTime::createFromFormat('Y-m-d H:i:s');
+        try {
+            return $this->validateSchedule($date);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Validate schedule.
+     * 
+     * @param  DateTime $date 
+     * @return mixed
+     */
+    public function validateSchedule(DateTime $date) {
+        $currentDate = clone $date;
+
+        //set current time.
+        $currentDate->setTime($currentDate->format('H'), $currentDate->format('i'), 0);
+
+        foreach ($this->order as $position => $field) {
+            $value= $this->$field;
+
+            if ($this->Validate->isDue($currentDate, $position, $value) === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

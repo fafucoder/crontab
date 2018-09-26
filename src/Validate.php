@@ -46,7 +46,7 @@ class Validate {
 	 * 
 	 * @var array
 	 */
-	public $month => array(
+	public $month = array(
 		'min' => 0,
 		'max' => 12,
 	);
@@ -56,7 +56,7 @@ class Validate {
 	 * 
 	 * @var array
 	 */
-	public $week => array(
+	public $week = array(
 		'min' => 0,
 		'max' => 6,
 	);
@@ -246,7 +246,9 @@ class Validate {
                 $weekday = 7;
             }
 
-            $weekday = $this->convertLiterals($weekday);
+			if (in_array($weekday, $this->weekAlias)) {
+				$weekday = array_search($value, $this->weekAlias);
+			}
 
             if (in_array($weekday, $this->weekAlias)) {
 				$weekday = array_search($weekday, $this->weekAlias);
@@ -254,10 +256,6 @@ class Validate {
 
             // Validate the hash fields
             if ($weekday < 0 || $weekday > 7) {
-                return false;
-            }
-
-            if (!in_array($nth, $this->nthRange)) {
                 return false;
             }
 
@@ -317,7 +315,8 @@ class Validate {
 			return true;
 		}
 
-		return $this->order[$position]($date, $value);
+		$function = $this->order[$position];
+		return $this->$function($date, $value);
 	}
 
 	/**
@@ -327,7 +326,7 @@ class Validate {
 	 * @param  string  $value     schedule value
 	 * @return boolean            
 	 */
-	public function isRange($dateValue, $value) {
+	protected function isRange($dateValue, $value) {
 		$range = array_map('trim', explode('-', $value, 2));
 
 		return $dateValue >= $range[0] && $dateValue <= $range[1];
@@ -341,7 +340,7 @@ class Validate {
 	 * @param  string  $type      field type
 	 * @return boolean            
 	 */
-	public function isStep($dateValue, $value, $type) {
+	protected function isStep($dateValue, $value, $type) {
 		$chunks = array_map('trim', explode('/', $value, 2));
 		$range = $chunks[0];
         $step = isset($chunks[1]) ? $chunks[1] : 0;
@@ -359,8 +358,8 @@ class Validate {
         	return false;
         }
 
-        $interval = (int)$end - (int)$start +1;
-        if ($step > $interval) {
+        $interval = (int)$end - (int)$start + 1;
+        if ($step >= $interval) {
         	return false;
         }
 
@@ -377,7 +376,7 @@ class Validate {
 	 * @param  int $day   
 	 * @return DateTime
 	 */
-	public function getNearWorkDay($year, $month, $day) {
+	protected function getNearWorkDay($year, $month, $day) {
         $tday = str_pad($day, 2, '0', STR_PAD_LEFT);
         $target = DateTime::createFromFormat('Y-m-d', "$year-$month-$tday");
         $currentWeekday = (int) $target->format('N');
@@ -389,10 +388,10 @@ class Validate {
         $lastDayOfMonth = $target->format('t');
 
         foreach (array(-1, 1, -2, 2) as $i) {
-            $adjusted = $targetDay + $i;
+            $adjusted = $day + $i;
             if ($adjusted > 0 && $adjusted <= $lastDayOfMonth) {
-                $target->setDate($currentYear, $currentMonth, $adjusted);
-                if ($target->format('N') < 6 && $target->format('m') == $currentMonth) {
+                $target->setDate($year, $month, $adjusted);
+                if ($target->format('N') < 6 && $target->format('m') == $month) {
                     return $target;
                 }
             }

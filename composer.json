@@ -19,5 +19,10 @@
         "psr-4": {
             "Crontab\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+          "Crontab\\Tests\\": "tests/"
+        }
     }
 }

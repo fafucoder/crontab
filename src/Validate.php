@@ -105,8 +105,10 @@ class Validate {
 
 	/**
 	 * Validate minute field.
-	 * 
+	 *
+	 * @param  object $date current datetime
 	 * @param  string $value minute value
+	 * 
 	 * @return boolean        
 	 */
 	public function minute(DateTime $date, $value) {
@@ -126,7 +128,9 @@ class Validate {
 	/**
 	 * Validate hour field.
 	 * 
-	 * @param  string $value hour value.
+	 * @param  object $date current datetime
+	 * @param  string $value hour value
+	 * 
 	 * @return boolean        
 	 */
 	public function hour(DateTime $date, $value) {
@@ -144,8 +148,10 @@ class Validate {
 
 	/**
 	 * Validate day fields.
-	 * 
+	 *
+	 * @param  object $date current datetime
 	 * @param string $value day value
+	 * 
 	 * @return  boolean
 	 */
 	public function day(DateTime $date, $value) {
@@ -177,7 +183,9 @@ class Validate {
 	/**
 	 * Validate month field.
 	 *
+	 * @param  object $date current datetime
 	 * @param  string $value month value
+	 * 
 	 * @return boolean        
 	 */
 	public function month(DateTime $date, $value) {
@@ -200,7 +208,8 @@ class Validate {
 	
 	/**
 	 * Validate week field.
-	 * 
+	 *
+	 * @param  object $date current datetime
 	 * @param  string $value week value
 	 * @return boolean        
 	 */
@@ -306,8 +315,9 @@ class Validate {
 	/**
 	 * Is due.
 	 * 
-	 * @param  object  $date  DateTime
+	 * @param  object $date current datetime
 	 * @param  string  $value 
+	 * 
 	 * @return boolean 
 	 */
 	public function isDue(DateTime $date, $position, $value) {
@@ -324,6 +334,7 @@ class Validate {
 	 * 
 	 * @param  string  $dateValue current date value
 	 * @param  string  $value     schedule value
+	 * 
 	 * @return boolean            
 	 */
 	protected function isRange($dateValue, $value) {

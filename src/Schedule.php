@@ -1,5 +1,5 @@
 <?php
-namespace Crontab\Schedule;
+namespace Crontab;
 
 use Crontab\Exception\ScheduleException;
 use Crontab\Validate;
@@ -30,7 +30,7 @@ class Schedule {
         'minute' => '/[\*,\/\-0-9]+/',
         'hour' => '/[\*,\/\-0-9]+/',
         'month' => '/[\*,\/\-0-9A-Z]+/',
-        'week' => '/[\*,\/\-\?#0-9A-Z]+/',
+        'week' => '/[\*,\/\-\?L#0-9A-Z]+/',
         'day' => '/[\*,\/\-\?#LWC0-9]+/',
     );
 
@@ -39,7 +39,7 @@ class Schedule {
 	 * 
 	 * @var string
 	 */
-	protected $minute = "*";
+	protected $minute = "0";
 
 	/**
 	 * Schedule hour.
@@ -263,7 +263,7 @@ class Schedule {
      * Validate schedule.
      * 
      * @param  DateTime $date 
-     * @return mixed
+     * @return boolean
      */
     public function validateSchedule(DateTime $date) {
         $currentDate = clone $date;
@@ -274,7 +274,7 @@ class Schedule {
         foreach ($this->order as $position => $field) {
             $value= $this->$field;
 
-            if ($this->Validate->isDue($currentDate, $position, $value) === false) {
+            if ($this->validate->isDue($currentDate, $position, $value) === false) {
                 return false;
             }
         }

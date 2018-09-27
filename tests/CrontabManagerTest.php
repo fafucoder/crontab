@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 
 class CrontabManagerTest extends TestCase {
 	public function testAdd() {
-
 	}	
 
 	public function testRemove() {

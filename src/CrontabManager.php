@@ -12,21 +12,23 @@ class CrontabManager {
 	public $registered = array();
 
 	/**
-	 * Construct.
+	 * Singleton object.
 	 * 
-	 * @param string|array $job    job name
-	 * @param array $config  job config
+	 * @var object
 	 */
-	public function __construct($job, $config = array()) {
-		if (is_array($job)) {
-			foreach ($job as $j) {
-				if (array_key_exists('slug', $j)) {
-					$this->add($j['slug'], $j);
-				}
-			}
-		} else {
-			$this->add($job, $config);
+	public static $instance;
+
+	/**
+	 * Singleton functions.
+	 * 
+	 * @return object 
+	 */
+	public static function getInstance() {
+		if (isset(self::$instance) || !self::$instance instanceof self) {
+			self::$instance = new self();
 		}
+
+		return self::$instance;
 	}
 
 	/**
@@ -37,11 +39,16 @@ class CrontabManager {
 	 * @return object return $this
 	 */
 	public function add($job, $config = array()) {
-		$crontab = new Crontab($config);
-
-		$this->registered[$job] = $crontab;
-
-		return $this;
+		if (is_array($job)) {
+			foreach ($job as $j => $conf) {
+				$this->add($j, $conf);
+			}
+		} else {
+			if (!array_key_exists($job, $this->registered)) {
+				$crontab = new Crontab($config);
+				$this->registered[$job] = $crontab;
+			}
+		}
 	}
 
 	/**

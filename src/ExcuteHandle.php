@@ -52,15 +52,6 @@ class ExcuteHandle extends Configurable {
 	protected $error_data = array();
 
 	/**
-	 * Construct.
-	 * 
-	 * @param array $config 
-	 */
-	public function __construct($config = array()) {
-		parent::__construct($config);
-	}
-
-	/**
 	 * Set error output filename.
 	 * 
 	 * @param string $error error output filename
@@ -176,7 +167,7 @@ class ExcuteHandle extends Configurable {
 	 */
 	public function excuteFunction() {
 		if ($this->function instanceof Closure) {
-			//@TODO			
+			$this->date = call_user_func($this->function);
 		}
 
 		if (file_exists($this->function)) {

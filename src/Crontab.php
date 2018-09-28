@@ -31,11 +31,13 @@ class Crontab extends Configurable {
 	public function __construct($config = array()) {
 		if (isset($config['schedule'])) {
 			$this->schedule = new Schedule($config['schedule']);
+			unset($config['schedule']);
 		} else {
 			$this->schedule = new Schedule();
 		}
-		$this->excuteHandle = new excuteHandle($config);
-		parend::__construct($config);
+
+		$this->excuteHandle = new ExcuteHandle($config);
+		parent::__construct($config);
 	}
 
 	/**
@@ -168,7 +170,9 @@ class Crontab extends Configurable {
 	 * @return void
 	 */
 	public function run() {
-		//@TOOD
+		if ($this->schedule->isRun()) {
+			$this->excuteHandle->excute();
+		}
 	}
 
 	/**

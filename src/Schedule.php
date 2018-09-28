@@ -97,6 +97,17 @@ class Schedule {
 	}
 
     /**
+     * Set schedule.
+     * 
+     * @param string $schedule 
+     */
+    public function setSchedule($schedule = '') {
+        $this->parseSchedule($schedule);
+
+        return $this;
+    }
+
+    /**
      * Get Schedule minute.
      * 
      * @return string
@@ -252,6 +263,8 @@ class Schedule {
      */
     public function isRun() {
         $date = DateTime::createFromFormat('Y-m-d H:i:s');
+        // $date = new DateTime('2018-09-26 00:00:00');
+
         try {
             return $this->validateSchedule($date);
         } catch (Exception $e) {

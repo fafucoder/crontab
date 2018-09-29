@@ -8,11 +8,9 @@ $manager = CrontabManager::getInstance();
 $manager->add('backup', array(
 	'command' => 'ls /home/dawn',
 	'schedule' => '* * * * *',
-	'enable' => true,
+	'enable' => false,
 	'output' => dirname(__FILE__) . '/log/output.log',
 	'error' => dirname(__FILE__) . '/log/error.log',
 ));
 
 $manager->run();
-
-echo "hello world";

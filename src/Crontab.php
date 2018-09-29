@@ -103,7 +103,7 @@ class Crontab extends Configurable {
 	 *
 	 * @param string $month month
 	 */
-	public function setMonth($job, $month) {
+	public function setMonth($month) {
 		$this->schedule->setMonth($month);
 
 		return $this;

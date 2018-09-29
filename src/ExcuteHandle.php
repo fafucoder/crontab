@@ -2,8 +2,6 @@
 namespace Crontab;
 
 use Closure;
-use Crontab\Exception\FileNotFoundException;
-use Crontab\Exception\FileWriteableException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\PhpProcess;
 use Symfony\Component\Process\PhpExecutableFinder;
@@ -57,13 +55,6 @@ class ExcuteHandle extends Configurable {
 	 * @param string $error error output filename
 	 */
 	public function setErrorOutput($error) {
-		if (!file_exists($error)) {
-			throw new FileNotFoundException(sprintf('Error output file not found for: %s', $error));
-		}
-		if (!is_writable($error)) {
-			throw new FileWriteableException(sprintf('Error output file not writeable for: %s', $error));
-		}
-
 		$this->error = $error;
 		return $this;
 	}
@@ -83,13 +74,6 @@ class ExcuteHandle extends Configurable {
 	 * @param string $output output filename
 	 */
 	public function setOutput($output) {
-		if (!file_exists($output)) {
-			throw new FileNotFoundException(sprintf('Output file not found for: %s', $output));
-		}
-		if (!is_writable($output)) {
-			throw new FileWriteableException(sprintf('Output file not writeable for: %s', $output));
-		}
-
 		$this->output = $output;
 		return $this;
 	}
@@ -129,12 +113,12 @@ class ExcuteHandle extends Configurable {
 	 * @param mixed $function 
 	 */
 	public function setFunction($function) {
-		if (!$function instanceof Closure || !class_exists($function) || file_exists($function)) {
-			throw new \Exception("Function must is function or class or file and file exist!");
-		}
-		$this->function = $function;
+		if ($function instanceof Closure || class_exists($function) || file_exists($function)) {
+			$this->function = $function;
 
-		return $this;
+			return $this;
+		}
+		throw new \Exception("Function must is function or class or file and file exist!");
 	}
 
 	/**
@@ -167,17 +151,13 @@ class ExcuteHandle extends Configurable {
 	 */
 	public function excuteFunction() {
 		if ($this->function instanceof Closure) {
-			$this->date = call_user_func($this->function);
-		}
-
-		if (file_exists($this->function)) {
+			$this->data = call_user_func($this->function);
+		} elseif (file_exists($this->function)) {
 			$path = $this->phpFinder();
 			$command = array($path, $this->function);
 			$this->excuteCommand($command);
-		}
-
-		//@TODO may be need further fixed
-		if (class_exists($this->function)) {
+		} elseif (class_exists($this->function)) {
+			//@TODO may be need further fixed
 			$class = $this->function;
 			return new $class();
 		}
@@ -246,7 +226,7 @@ class ExcuteHandle extends Configurable {
 		$fp = fopen($file, 'a');
 
 		if(flock($fp, LOCK_EX)) {
-			fwrite($fp, $data . '\r\n');
+			fwrite($fp, $data . PHP_EOL);
 		}
 
 		flock($fp,LOCK_UN);

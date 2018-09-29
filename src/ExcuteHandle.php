@@ -196,6 +196,14 @@ class ExcuteHandle extends Configurable {
 		if ($this->command) {
 			$this->excuteCommand($this->command);
 		}
+
+		if ($this->data && $this->output) {
+			$this->renderOutput($this->data, $this->output);
+		}
+
+		if ($this->error_data && $this->error) {
+			$this->renderOutput($this->error_data, $this->error);
+		}
 	}
 
 	/**
@@ -225,5 +233,23 @@ class ExcuteHandle extends Configurable {
 		$phpBinaryPath = $phpBinaryFinder->find();
 
 		return $phpBinaryPath;
+	}
+
+	/**
+	 * Render data to the output file.
+	 * 
+	 * @param  string $data output data
+	 * @param  string $file output file
+	 * @return void
+	 */
+	protected function renderOutput($data, $file) {
+		$fp = fopen($file, 'a');
+
+		if(flock($fp, LOCK_EX)) {
+			fwrite($fp, $data . '\r\n');
+		}
+
+		flock($fp,LOCK_UN);
+		fclose($fp);
 	}
 }

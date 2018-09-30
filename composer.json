@@ -1,5 +1,5 @@
 {
-    "name": "root/crontab",
+    "name": "dawn/crontab",
     "description": "linux 定时器",
     "license": "MIT",
     "authors": [

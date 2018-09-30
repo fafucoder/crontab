@@ -1,90 +1,79 @@
-All in the constructing
+PHP Crontab
 -----------------------
 
-### 配置crontab
-~~~php
-use Crontab\Crontab;
+PHP crontab is the implementation of Linux crontab on PHP (essentially still requires crontab as a timing boot driver), the purpose is to facilitate crontab management.
 
-$crontab = new Crontab('秒杀', array(
+## Get Start
+
+### Installation
+First of all you should require crontab package, is recommend way to install is through [Composer](http://getcomposer.org):
+```php
+$ composer require dawn/crontab
+```
+
+Then add linux crontab command to run php crontab
+```
+* * * * * /path/to/project && php crontab.php 1>>/dev/null 2>&1
+```
+
+The last you can write crontab job in crontab.php.
+
+### Run a job
+
+Crontab manager is manger job, so you can use manager to add a job or remove a job, this is an example.
+```php
+<?php
+require dirname(__DIR__) . '/vendor/autoload.php';
+use Crontab\CrontabManager;
+$manager = CrontabManager::getInstance();
+$manager->add('backup', array(
 	'command' => 'ls -al',
-	'output' => dirname(__FIlE__) . '/output.php',
-	'error' => dirname(__FILE__) . '/output.log',
-	'schedule' => '0 * * * *',
-	'enabled' => true,
-	'function' => function() {
-		$class = new Class();
-	}
-))->run();
-~~~
-
-### Crontab方法
-~~~php
-$crontab
-	->setCommand('ls -al')
-	->setOutput(__DIR__ . '/output.php')
-	->setError(__DIR__ . '/output.log')
-	->setFunction(function() {
-		echo "hello world";
-	})
-	->setSchedule("* * * * *")
-	->addJob('活动')
-
-~~~
-
-### 移除 Crontab
-~~~php
-$crontab->removeJob('秒杀');
-~~~
-
-### 添加Crontab
-~~~php
-$crontab->addJob('秒杀', array(
-	'command' => 'ls -al',
-	'output' => dirname(__FIlE__) . '/output.php',
-	'error' => dirname(__FILE__) . '/output.log',
-	'schedule' => '0 * * * *',
-	'enabled' => true,
-	'function' => function() {
-		$class = new Class();
-	}
+	'schedule' => '* * * * *',
+	'enable' => true,
+	'output' => dirname(__FILE__) . '/log/output.log',
+	'error' => dirname(__FILE__) . '/log/error.log',
 ));
-~~~
+$manager->run();
+```
 
-### Disable Crontab
-~~~php
-$crontab->disable('秒杀');
-~~~
+You can get a crontab and change command or change function
+```php
+use Crontab\CrontabManager;
+$manger = CrontabManager::getInstance()->get('backup');
 
-### Enable Crontab
-~~~php
-$crontab->enable('秒杀');
-~~~
+$manager->setMinute('*/10')
+		->setHour('12')
+		->setDay('*')
+		->setMonth('SEP')
+		->setWeek('5L')
+		->setCommand('cp back.php ~/index')
+		->enable()
+		->setOutput('/fixtures/output.txt')
+		->setErrorOutput('/fixtures/error.txt')
+		->run()
 
-### Run crontab
-必须是enable才可以执行crontab,如果是disable则不执行crontab
-~~~php
-$crontab->enable('秒杀')->run('秒杀');
-~~~
+//get output data
+$data = $manager->getData();
+$error_data = $manager->getErrorData();
+```
 
-### Get the output for crontab
-~~~php
-$output = $crontab->getOutput('秒杀');
-~~~
+you can delete a job you don't want anymore:
+```
+$manager->remove('backup');
+```
+
+you can easily to disabled, enabled a crontab to use enable options or enable,disable function.
+```php
+use Crontab\CrontabManager;
+
+CrontabManager::getInstance()->enable('backup');
+CrontabManager::getInstance()->disable('backup');
+```
+
+for more infomation about this project you can read this source code, if you have any problem welcom pull issue/request
+
+## License 
+
+This project is under MIT License. See the [LICENSE](https://github.com/fafucoder/crontab/blob/master/LICENSE) file for the full license text.
 
 
-### Clear crontab 
-~~~php
-$crontab->clear();
-~~~
-
-
-### 关于设置schedule可以有其他的方法
-~~~php
-$crontab
-	->setMinute('秒杀', '*')
-	->setHour('秒杀', '*')
-	->setDay('秒杀', '23')
-	->setMonth('秒杀', '1,2,3')
-	->setWeek('秒杀', '1')
-	->setCommand('秒杀', 'ls -al');
-~~~

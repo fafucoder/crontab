@@ -1,4 +1,4 @@
-PHP Crontab
+PHP Crontab [![Build Status](https://travis-ci.com/fafucoder/crontab.svg?branch=master)](https://travis-ci.com/fafucoder/crontab)
 -----------------------
 
 PHP crontab is the implementation of Linux crontab on PHP (essentially still requires crontab as a timing boot driver), the purpose is to facilitate crontab management.

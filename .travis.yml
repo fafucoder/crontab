@@ -1,9 +1,11 @@
 language: php
+
 php:
  - 7.0
  - 7.1
  - 7.2
+ 
 dist: trusty
 sudo: false
-install: travis_retry composer install
+install: composer install --prefer-dist --optimize-autoloader
 script: vendor/bin/phpunit
